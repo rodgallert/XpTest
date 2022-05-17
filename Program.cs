@@ -8,9 +8,10 @@ namespace XpTest
 {
     internal class Program
     {
+        const string _KEY = "id_fundo";
+
         static void Main(string[] args)
         {
-            Console.WriteLine(RemoveSpecialChars("12...581...135/./0001-.-77"));
             Console.Write("Path to first file: ");
             string path = Console.ReadLine();
 
@@ -30,6 +31,12 @@ namespace XpTest
             {
                 table2 = ReadFile(path);
             }
+
+            if (table1 == null || table2 == null)
+            {
+                Console.WriteLine("You have a problem with your file");
+                return;
+            }
         }
 
         private static DataTable ReadFile(string path)
@@ -42,8 +49,6 @@ namespace XpTest
 
                 // gets the defaul (first) sheet from the file
                 WorkSheet sheet = workBook.DefaultWorkSheet;
-
-                Console.WriteLine(sheet.ColumnCount);
 
                 return sheet.ToDataTable(true);
             }
@@ -73,6 +78,15 @@ namespace XpTest
         {
             // removes everything that is not a number from the input string
             return new string(input.Where(x => Char.IsDigit(x)).ToArray());
+        }
+
+        private static string CompareTables(DataTable table1, DataTable table2)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("CNPJ");
+            result.Columns.Add("trib_cvm");
+            result.Columns.Add("trib_anbima");
+            result.Columns.Add("resultado");
         }
     }
 }
