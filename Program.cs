@@ -8,7 +8,9 @@ namespace XpTest
 {
     internal class Program
     {
-        const string _KEY = "id_fundo";
+        private const string _KEY = "id_fundo";
+        private const string _TRIBCVM = "TRIB_LPRAZO";
+        private const string _TRIBANBIMA = "tributacao_alvo";
 
         static void Main(string[] args)
         {
@@ -18,9 +20,10 @@ namespace XpTest
             DataTable table1 = new DataTable();
             DataTable table2 = new DataTable();
 
-            
+
             if (IsPathValid(path))
             {
+                Console.WriteLine("Loading file 1...");
                 table1 = ReadFile(path);
             }
 
@@ -29,6 +32,7 @@ namespace XpTest
 
             if (IsPathValid(path))
             {
+                Console.WriteLine("Loading file 2...");
                 table2 = ReadFile(path);
             }
 
@@ -37,6 +41,8 @@ namespace XpTest
                 Console.WriteLine("You have a problem with your file");
                 return;
             }
+
+            CompareTables(table1, table2);
         }
 
         private static DataTable ReadFile(string path)
@@ -57,11 +63,10 @@ namespace XpTest
                 Console.WriteLine("Could not find the specified file " + path);
                 return null;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex.Message);
                 return null;
-            } finally { 
-                workbook.Close();
             }
         }
 
@@ -80,13 +85,26 @@ namespace XpTest
             return new string(input.Where(x => Char.IsDigit(x)).ToArray());
         }
 
-        private static string CompareTables(DataTable table1, DataTable table2)
+        private static void CompareTables(DataTable table1, DataTable table2)
         {
-            DataTable result = new DataTable();
-            result.Columns.Add("CNPJ");
-            result.Columns.Add("trib_cvm");
-            result.Columns.Add("trib_anbima");
-            result.Columns.Add("resultado");
+            DataTable table3 = new DataTable();
+            table3.Columns.Add("CNPJ", typeof(string));
+            table3.Columns.Add("Tributacao_cvm", typeof(string));
+            table3.Columns.Add("Tributacao_anbima", typeof(string));
+            table3.Columns.Add("Resultado", typeof(string));
+
+            var result = from row in table1.AsEnumerable()
+                         join row2 in table2.AsEnumerable()
+                         on RemoveSpecialChars(row[_KEY].ToString()) equals RemoveSpecialChars(row2[_KEY].ToString())
+                         where row[_KEY] != null
+                         where row2[_KEY] != null
+                         select row;
+
+            foreach (DataRow row in result)
+            {
+                table3.Rows.Add(row[_KEY], row[_TRIBCVM], row[_TRIBANBIMA]);
+            }
         }
     }
+
 }
