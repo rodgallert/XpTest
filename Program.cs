@@ -12,9 +12,6 @@ namespace XpTest
         private const string _KEY = "id_fundo";
         private const string _TRIBCVM = "TRIB_LPRAZO";
         private const string _TRIBANBIMA = "tributacao_alvo";
-        private const string _PATHCVM = "d:\\repos\\xptest\\docs\\fundos_cvm.xlsx";
-        private const string _PATHANBIMA = "d:\\repos\\xptest\\docs\\fundos_anbima.xlsx";
-
 
         static void Main()
         {
@@ -22,7 +19,7 @@ namespace XpTest
             DataTable table1 = new DataTable();
             DataTable table2 = new DataTable();
 
-            /*
+            
             Console.Write("Path to first file: ");
             string path = Console.ReadLine();
 
@@ -39,24 +36,15 @@ namespace XpTest
             {
                 Console.WriteLine("Loading file 2...");
                 table2 = ReadFile(path);
-            }*/
-
-            table1 = ReadFile(_PATHCVM);
-            table2 = ReadFile(_PATHANBIMA);
+            }
 
             if (table1 == null || table2 == null)
             {
                 Console.WriteLine("You have a problem with your file");
                 return;
             }
+            CompareTables(table1, table2);
 
-            if (table1 != null && table2 != null)
-            {
-                CompareTables(table1, table2);
-            } else
-            {
-                Console.WriteLine("Please provide a valid worksheet");
-            }
         }
 
         private static DataTable ReadFile(string path)
@@ -101,17 +89,17 @@ namespace XpTest
 
         private static void CompareTables(DataTable table1, DataTable table2)
         {
-            DataTable table3 = new DataTable
+            DataTable resultTable = new DataTable
             {
                 TableName = "Result table",
             };
-            table3.Columns.Clear();
-            table3.Rows.Clear();
+            resultTable.Columns.Clear();
+            resultTable.Rows.Clear();
 
-            table3.Columns.Add(new DataColumn("CNPJ", typeof(string)));
-            table3.Columns.Add(new DataColumn(_TRIBCVM, typeof(string)));
-            table3.Columns.Add(new DataColumn(_TRIBANBIMA, typeof(string)));
-            table3.Columns.Add(new DataColumn("Resultado", typeof(string)));
+            resultTable.Columns.Add(new DataColumn("CNPJ", typeof(string)));
+            resultTable.Columns.Add(new DataColumn(_TRIBCVM, typeof(string)));
+            resultTable.Columns.Add(new DataColumn(_TRIBANBIMA, typeof(string)));
+            resultTable.Columns.Add(new DataColumn("Resultado", typeof(string)));
             
             var result = from row in table1.AsEnumerable()
                          join row2 in table2.AsEnumerable()
@@ -123,17 +111,12 @@ namespace XpTest
             foreach(Tupla tupla in result)
             {
 
-                table3.Rows.Add(tupla.Cnpj, tupla.TributacaoCvm, tupla.TributacaoAnbima, CompareTributes(tupla));
+                resultTable.Rows.Add(RemoveSpecialChars(tupla.Cnpj), tupla.TributacaoCvm, tupla.TributacaoAnbima, CompareTributes(tupla));
             }
 
-            table3.AcceptChanges();
+            resultTable.AcceptChanges();
 
-            foreach(DataRow row in table3.Rows)
-            {
-                Console.WriteLine(row["Resultado"]);
-            }
-
-            SaveFile(table3);
+            SaveFile(resultTable);
         }
 
         private static string CompareTributes(Tupla t)
@@ -165,9 +148,11 @@ namespace XpTest
 
         private static void SaveFile(DataTable table)
         {
+            Console.Write("Please provide destination path, without file name: ");
+            string path = Console.ReadLine();
             XLWorkbook wb = new XLWorkbook();
             wb.Worksheets.Add(table);
-            wb.SaveAs("D:\\Desktop\\test.xlsx");
+            wb.SaveAs(path + "\\result.xlsx");
         }
     }
 }
