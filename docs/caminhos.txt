@@ -1,0 +1,2 @@
+d:\repos\xptest\docs\fundos_cvm.xlsx
+d:\repos\xptest\docs\fundos_anbima.xlsx

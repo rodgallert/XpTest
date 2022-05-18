@@ -1,4 +1,5 @@
-﻿using IronXL;
+﻿using ClosedXML.Excel;
+using IronXL;
 using System;
 using System.Data;
 using System.IO;
@@ -102,17 +103,16 @@ namespace XpTest
         {
             DataTable table3 = new DataTable
             {
-                TableName = "Result table"
+                TableName = "Result table",
             };
             table3.Columns.Clear();
             table3.Rows.Clear();
-
 
             table3.Columns.Add(new DataColumn("CNPJ", typeof(string)));
             table3.Columns.Add(new DataColumn(_TRIBCVM, typeof(string)));
             table3.Columns.Add(new DataColumn(_TRIBANBIMA, typeof(string)));
             table3.Columns.Add(new DataColumn("Resultado", typeof(string)));
-
+            
             var result = from row in table1.AsEnumerable()
                          join row2 in table2.AsEnumerable()
                          on RemoveSpecialChars(row[_KEY].ToString()) equals RemoveSpecialChars(row2[_KEY].ToString())
@@ -126,7 +126,14 @@ namespace XpTest
                 table3.Rows.Add(tupla.Cnpj, tupla.TributacaoCvm, tupla.TributacaoAnbima, CompareTributes(tupla));
             }
 
+            table3.AcceptChanges();
 
+            foreach(DataRow row in table3.Rows)
+            {
+                Console.WriteLine(row["Resultado"]);
+            }
+
+            SaveFile(table3);
         }
 
         private static string CompareTributes(Tupla t)
@@ -154,6 +161,13 @@ namespace XpTest
                 }
             }
             return t.Resultado;
+        }
+
+        private static void SaveFile(DataTable table)
+        {
+            XLWorkbook wb = new XLWorkbook();
+            wb.Worksheets.Add(table);
+            wb.SaveAs("D:\\Desktop\\test.xlsx");
         }
     }
 }
