@@ -19,7 +19,6 @@ namespace XpTest
             DataTable table1 = new DataTable();
             DataTable table2 = new DataTable();
 
-            
             Console.Write("Path to first file: ");
             string path = Console.ReadLine();
 
@@ -44,16 +43,19 @@ namespace XpTest
                 return;
             }
             CompareTables(table1, table2);
-
         }
 
+        /// <summary>
+        /// Reads a XLS file and returns it as a DataTable object
+        /// </summary>
+        /// <param name="path">A string ponting to a file</param>
+        /// <returns>The file converted as a DataTable</returns>
         private static DataTable ReadFile(string path)
         {
-            WorkBook workbook;
             try
             {
                 // loads the file
-                workbook = new WorkBook(path);
+                WorkBook workbook = new WorkBook(path);
 
                 // gets the default (first) sheet from the file
                 WorkSheet sheet = workbook.DefaultWorkSheet;
@@ -72,6 +74,11 @@ namespace XpTest
             }
         }
 
+        /// <summary>
+        /// Checks if a provided file path is not null or empty
+        /// </summary>
+        /// <param name="path">A string pointing to a file</param>
+        /// <returns>False if the provided string is either null or empty</returns>
         private static bool IsPathValid(string path)
         {
             if (path == string.Empty || path == null)
@@ -81,26 +88,39 @@ namespace XpTest
             return true;
         }
 
+        /// <summary>
+        /// Checks if the input string has any special characters and remove them
+        /// </summary>
+        /// <param name="input">A string</param>
+        /// <returns>A string with only numbers</returns>
         private static string RemoveSpecialChars(string input)
         {
-            // removes everything that is not a number from the input string
             return new string(input.Where(x => Char.IsDigit(x)).ToArray());
         }
 
+        /// <summary>
+        /// Compares two provided spreadsheets and creates a third sheet with the resulting rows
+        /// </summary>
+        /// <param name="table1">A DataTable from a XLSX file</param>
+        /// <param name="table2">A DataTable from a XLSX file</param>
         private static void CompareTables(DataTable table1, DataTable table2)
         {
             DataTable resultTable = new DataTable
             {
                 TableName = "Result table",
             };
+
+            // Creates a new, empty DataTable
             resultTable.Columns.Clear();
             resultTable.Rows.Clear();
 
+            // Adds the columns with required results
             resultTable.Columns.Add(new DataColumn("CNPJ", typeof(string)));
             resultTable.Columns.Add(new DataColumn(_TRIBCVM, typeof(string)));
             resultTable.Columns.Add(new DataColumn(_TRIBANBIMA, typeof(string)));
             resultTable.Columns.Add(new DataColumn("Resultado", typeof(string)));
             
+            // Selects a tuple from two spreadsheets, with its CNPJ, its tributes in either bases, and a default value that those tributes are not the same
             var result = from row in table1.AsEnumerable()
                          join row2 in table2.AsEnumerable()
                          on RemoveSpecialChars(row[_KEY].ToString()) equals RemoveSpecialChars(row2[_KEY].ToString())
@@ -110,7 +130,6 @@ namespace XpTest
 
             foreach(Tupla tupla in result)
             {
-
                 resultTable.Rows.Add(RemoveSpecialChars(tupla.Cnpj), tupla.TributacaoCvm, tupla.TributacaoAnbima, CompareTributes(tupla));
             }
 
@@ -119,6 +138,11 @@ namespace XpTest
             SaveFile(resultTable);
         }
 
+        /// <summary>
+        /// Compares two tributes from a tuple found in the two tables provided, and returns if they are equal or not
+        /// </summary>
+        /// <param name="t">A tuple from a joined query of two datasheets</param>
+        /// <returns>Igual if the tributes are the same, keeps default value Diferente if they are not</returns>
         private static string CompareTributes(Tupla t)
         {
             if (t.TributacaoCvm.Equals("S"))
@@ -146,6 +170,10 @@ namespace XpTest
             return t.Resultado;
         }
 
+        /// <summary>
+        /// Saves a DataTable from the join and processing from other 2 spreadsheets
+        /// </summary>
+        /// <param name="table">A DataTable to be saved as a XLSX file</param>
         private static void SaveFile(DataTable table)
         {
             Console.Write("Please provide destination path, without file name: ");
